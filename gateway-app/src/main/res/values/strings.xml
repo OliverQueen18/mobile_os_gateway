@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OS Gateway</string>
+    <string name="ussd_accessibility_label">OS Gateway USSD Engine</string>
+    <string name="ussd_accessibility_description">Permet à OS Gateway de lire et répondre automatiquement aux dialogues USSD. Activez ce service pour exécuter les scénarios assignés.</string>
+    <string name="fg_channel_name">Gateway heartbeat</string>
+    <string name="fg_notification_title">OS Gateway actif</string>
+    <string name="fg_notification_text">Heartbeat et synchronisation des tâches</string>
+</resources>

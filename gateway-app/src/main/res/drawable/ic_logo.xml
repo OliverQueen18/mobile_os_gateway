@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Soft gold ring -->
+    <path
+        android:fillColor="#E8C547"
+        android:pathData="M54,14c22.091,0 40,17.909 40,40s-17.909,40 -40,40 -40,-17.909 -40,-40 17.909,-40 40,-40z" />
+    <!-- Inner forest disc -->
+    <path
+        android:fillColor="#0B3D2E"
+        android:pathData="M54,26c15.464,0 28,12.536 28,28s-12.536,28 -28,28 -28,-12.536 -28,-28 12.536,-28 28,-28z" />
+    <!-- Signal arcs -->
+    <path
+        android:fillColor="#E8C547"
+        android:pathData="M54,40c7.732,0 14,6.268 14,14h-6c0,-4.418 -3.582,-8 -8,-8s-8,3.582 -8,8h-6c0,-7.732 6.268,-14 14,-14z" />
+    <path
+        android:fillColor="#E8C547"
+        android:pathData="M54,50c2.209,0 4,1.791 4,4h-8c0,-2.209 1.791,-4 4,-4z" />
+    <!-- Center node -->
+    <path
+        android:fillColor="#E8C547"
+        android:pathData="M54,58c2.761,0 5,2.239 5,5s-2.239,5 -5,5 -5,-2.239 -5,-5 2.239,-5 5,-5z" />
+</vector>
