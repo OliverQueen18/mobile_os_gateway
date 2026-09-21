@@ -22,6 +22,11 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            buildConfigField(
+                "String",
+                "DEFAULT_API_BASE_URL",
+                "\"https://osgateway.olive-services.net/api/v1/\"",
+            )
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
