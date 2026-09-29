@@ -53,15 +53,24 @@ Sur `gateway-app`, accorder :
 
 ## Build APK
 
+Les sorties Gradle sont hors du dossier OneDrive (voir `build.gradle.kts`) :
+
+- Windows : `%USERPROFILE%\.os-gateway-android-builds\os-gateway-mobile\`
+- CI Jenkins : `${WORKSPACE}/.android-build/` (`OSG_ANDROID_BUILD_DIR`)
+
 ```bash
 # Windows
 .\gradlew.bat :gateway-app:assembleDebug
 .\gradlew.bat :distributor-app:assembleDebug
 
-# APK générés
-# gateway-app/build/outputs/apk/debug/gateway-app-debug.apk
-# distributor-app/build/outputs/apk/debug/distributor-app-debug.apk
+# APK (exemple)
+# .../gateway-app/build/outputs/apk/debug/gateway-app-debug.apk
+# .../distributor-app/build/outputs/apk/debug/distributor-app-debug.apk
 ```
+
+### Jenkins
+
+Pipeline dédié : `Jenkinsfile` — voir [deploy/jenkins/README.md](deploy/jenkins/README.md).
 
 Release (nécessite un keystore) :
 

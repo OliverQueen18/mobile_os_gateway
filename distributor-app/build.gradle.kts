@@ -13,8 +13,8 @@ android {
         applicationId = "com.osgateway.distributor"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = System.getenv("BUILD_NUMBER")?.toIntOrNull() ?: 1
+        versionName = System.getenv("APP_VERSION_NAME") ?: "1.0.0"
         buildConfigField(
             "String",
             "DEFAULT_API_BASE_URL",

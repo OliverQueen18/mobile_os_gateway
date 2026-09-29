@@ -9,8 +9,12 @@ plugins {
 
 // OneDrive turns generated build files into cloud placeholders (ReparsePoints),
 // which breaks Gradle snapshotting ("not a regular file"). Keep outputs local.
-val externalBuildRoot = file("${System.getProperty("user.home")}/.os-gateway-android-builds/${rootProject.name}")
+// CI (Jenkins) : OSG_ANDROID_BUILD_DIR=${WORKSPACE}/.android-build
+val externalBuildRoot = System.getenv("OSG_ANDROID_BUILD_DIR")?.let { file(it) }
+    ?: file("${System.getProperty("user.home")}/.os-gateway-android-builds/${rootProject.name}")
 
 allprojects {
     layout.buildDirectory.set(externalBuildRoot.resolve(project.name))
 }
+
+apply(from = "gradle/ci-signing.gradle.kts")
