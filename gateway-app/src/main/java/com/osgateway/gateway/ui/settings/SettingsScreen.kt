@@ -45,6 +45,7 @@ fun SettingsScreen() {
     val locator = remember { ServiceLocator.get(context) }
     val scope = rememberCoroutineScope()
     var apiUrl by remember { mutableStateOf(locator.tokenStore.getApiBaseUrl()) }
+    var operator by remember { mutableStateOf(locator.tokenStore.getPreferredOperator().orEmpty()) }
     var message by remember { mutableStateOf<String?>(null) }
 
     ScreenChrome(
@@ -63,6 +64,43 @@ fun SettingsScreen() {
                 "Gateway ID · ${locator.tokenStore.getGatewayId() ?: "—"}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = GwMuted,
+            )
+            Text(
+                "Opérateur · ${locator.tokenStore.getPreferredOperator() ?: "—"}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = GwMuted,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+        SoftPanel {
+            Text("Opérateur Mobile Money", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Requis uniquement à la 1re inscription du téléphone (sinon l’opérateur admin est réutilisé).",
+                style = MaterialTheme.typography.bodySmall,
+                color = GwMuted,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            GwTextField(
+                value = operator,
+                onValueChange = { operator = it.uppercase() },
+                label = "Code opérateur (ex. ORANGE)",
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            GwPrimaryButton(
+                text = "Enregistrer l'opérateur",
+                onClick = {
+                    scope.launch {
+                        if (operator.isBlank()) {
+                            message = "Indiquez un code opérateur"
+                            return@launch
+                        }
+                        locator.tokenStore.savePreferredOperator(operator.trim())
+                        message = "Opérateur enregistré"
+                        JournalRepository.append("Opérateur préféré = ${operator.trim()}")
+                    }
+                },
             )
         }
 

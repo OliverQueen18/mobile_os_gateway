@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.osgateway.distributor.BuildConfig
 import com.osgateway.distributor.data.FcmTokenStore
 import com.osgateway.distributor.data.ServiceLocator
 import com.osgateway.distributor.ui.components.AuthScreenScaffold
@@ -38,7 +39,6 @@ fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
     val locator = remember { ServiceLocator.get(context) }
     val scope = rememberCoroutineScope()
-    var apiUrl by remember { mutableStateOf(locator.tokenStore.getApiBaseUrl()) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
@@ -48,8 +48,6 @@ fun LoginScreen(navController: NavController) {
         title = "Connexion",
         subtitle = "Accédez à votre espace distributeur",
     ) {
-        OsTextField(apiUrl, { apiUrl = it }, "URL API")
-        Spacer(modifier = Modifier.height(10.dp))
         OsTextField(
             username,
             { username = it },
@@ -83,7 +81,7 @@ fun LoginScreen(navController: NavController) {
                     loading = true
                     error = null
                     try {
-                        locator.tokenStore.saveApiBaseUrl(apiUrl.trim())
+                        locator.tokenStore.saveApiBaseUrl(BuildConfig.DEFAULT_API_BASE_URL)
                         locator.rebuildClient()
                         val resp = locator.authApi.login(LoginRequest(username.trim(), password))
                         val data = resp.data

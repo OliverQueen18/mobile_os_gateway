@@ -15,18 +15,17 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
-        buildConfigField("String", "DEFAULT_API_BASE_URL", "\"http://10.0.2.2:18080/api/v1/\"")
+        buildConfigField(
+            "String",
+            "DEFAULT_API_BASE_URL",
+            "\"https://osgateway.olive-services.net/api/v1/\"",
+        )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
-            buildConfigField(
-                "String",
-                "DEFAULT_API_BASE_URL",
-                "\"https://osgateway.olive-services.net/api/v1/\"",
-            )
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

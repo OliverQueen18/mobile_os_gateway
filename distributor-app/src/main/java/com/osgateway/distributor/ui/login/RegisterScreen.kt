@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.osgateway.distributor.BuildConfig
 import com.osgateway.distributor.data.ServiceLocator
 import com.osgateway.distributor.ui.components.AddressMapField
 import com.osgateway.distributor.ui.components.AuthScreenScaffold
@@ -56,7 +57,6 @@ fun RegisterScreen(navController: NavController) {
     val locator = remember { ServiceLocator.get(context) }
     val scope = rememberCoroutineScope()
 
-    var apiUrl by remember { mutableStateOf(locator.tokenStore.getApiBaseUrl()) }
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
@@ -81,7 +81,7 @@ fun RegisterScreen(navController: NavController) {
         scope.launch {
             loadingTerms = true
             try {
-                locator.tokenStore.saveApiBaseUrl(apiUrl.trim())
+                locator.tokenStore.saveApiBaseUrl(BuildConfig.DEFAULT_API_BASE_URL)
                 locator.rebuildClient()
                 val resp = locator.authApi.registrationInfo()
                 val data = resp.data
@@ -96,7 +96,7 @@ fun RegisterScreen(navController: NavController) {
                     null
                 }
             } catch (_: Exception) {
-                terms = "Impossible de charger les conditions. Vérifiez l'URL API puis réessayez."
+                terms = "Impossible de charger les conditions. Vérifiez la connexion puis réessayez."
                 feeLabel = null
             } finally {
                 loadingTerms = false
@@ -113,10 +113,6 @@ fun RegisterScreen(navController: NavController) {
         subtitle = "Inscription distributeur OS Gateway",
     ) {
         FormSectionTitle("Connexion")
-        OsTextField(apiUrl, { apiUrl = it }, "URL API")
-        Spacer(modifier = Modifier.height(6.dp))
-        OsTextLink("Charger les conditions") { loadRegistrationInfo() }
-        Spacer(modifier = Modifier.height(10.dp))
         OsTextField(username, { username = it }, "Identifiant (login)")
         Spacer(modifier = Modifier.height(10.dp))
         OsTextField(
@@ -234,7 +230,7 @@ fun RegisterScreen(navController: NavController) {
                     }
                     loading = true
                     try {
-                        locator.tokenStore.saveApiBaseUrl(apiUrl.trim())
+                        locator.tokenStore.saveApiBaseUrl(BuildConfig.DEFAULT_API_BASE_URL)
                         locator.rebuildClient()
                         val resp = locator.authApi.register(
                             RegisterRequest(

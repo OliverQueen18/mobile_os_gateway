@@ -248,7 +248,7 @@ data class HeartbeatResponse(
 data class GatewayRegisterRequest(
     val deviceId: String,
     val name: String,
-    val operator: String,
+    val operator: String? = null,
     val phoneNumber: String? = null,
     val apiKey: String? = null,
 )

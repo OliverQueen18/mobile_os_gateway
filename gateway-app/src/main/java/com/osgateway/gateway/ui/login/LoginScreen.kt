@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.outlined.CellTower
-import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -30,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.osgateway.gateway.BuildConfig
 import com.osgateway.gateway.R
 import com.osgateway.gateway.data.FcmTokenStore
 import com.osgateway.gateway.data.JournalRepository
@@ -58,10 +57,8 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
     val locator = remember { ServiceLocator.get(context) }
     val scope = rememberCoroutineScope()
 
-    var apiUrl by remember { mutableStateOf(locator.tokenStore.getApiBaseUrl()) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var operator by remember { mutableStateOf(locator.tokenStore.getPreferredOperator().orEmpty()) }
     var error by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
 
@@ -91,20 +88,11 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                 style = MaterialTheme.typography.headlineMedium,
             )
             Text(
-                "Identifiants opérateur / gateway",
+                "Identifiants gateway",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
             )
 
-            GwTextField(
-                value = apiUrl,
-                onValueChange = { apiUrl = it },
-                label = "URL API",
-                trailingIcon = {
-                    Icon(Icons.Outlined.Link, contentDescription = null, tint = GwMuted)
-                },
-            )
-            Spacer(modifier = Modifier.height(10.dp))
             GwTextField(
                 value = username,
                 onValueChange = { username = it },
@@ -123,15 +111,6 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                     Icon(Icons.Outlined.Lock, contentDescription = null, tint = GwMuted)
                 },
             )
-            Spacer(modifier = Modifier.height(10.dp))
-            GwTextField(
-                value = operator,
-                onValueChange = { operator = it.uppercase() },
-                label = "Opérateur (ex. ORANGE, MOOV)",
-                trailingIcon = {
-                    Icon(Icons.Outlined.CellTower, contentDescription = null, tint = GwMuted)
-                },
-            )
 
             error?.let {
                 Spacer(modifier = Modifier.height(12.dp))
@@ -142,19 +121,15 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
             GwPrimaryButton(
                 text = "Se connecter",
                 loading = loading,
-                enabled = username.isNotBlank() && password.isNotBlank() && operator.isNotBlank(),
+                enabled = username.isNotBlank() && password.isNotBlank(),
                 icon = Icons.AutoMirrored.Filled.Login,
                 onClick = {
                     scope.launch {
                         loading = true
                         error = null
                         try {
-                            val operatorCode = operator.trim().uppercase()
-                            if (operatorCode.isBlank()) {
-                                error = "Indiquez l'opérateur Mobile Money du gateway"
-                                return@launch
-                            }
-                            locator.tokenStore.saveApiBaseUrl(apiUrl.trim())
+                            // Toujours l’URL prod BuildConfig (réglages avancés pour override)
+                            locator.tokenStore.saveApiBaseUrl(BuildConfig.DEFAULT_API_BASE_URL)
                             locator.rebuildClient()
                             val resp = locator.authApi.login(LoginRequest(username.trim(), password))
                             val data = resp.data
@@ -176,24 +151,31 @@ fun LoginScreen(onLoggedIn: () -> Unit) {
                                 context.contentResolver,
                                 android.provider.Settings.Secure.ANDROID_ID,
                             ) ?: "gw-${System.currentTimeMillis()}"
+                            val preferredOperator = locator.tokenStore.getPreferredOperator()
                             val registered = runCatching {
                                 locator.gatewayApi.register(
                                     GatewayRegisterRequest(
                                         deviceId = "AID:$deviceId",
                                         name = "Gateway ${android.os.Build.MODEL}",
-                                        operator = operatorCode,
+                                        operator = preferredOperator,
                                         phoneNumber = null,
                                     ),
                                 ).data
-                            }.getOrNull()
-                            locator.tokenStore.savePreferredOperator(operatorCode)
+                            }.getOrElse { ex ->
+                                error = ex.userMessageFr()
+                                JournalRepository.append("Register gateway échec: ${ex.message}")
+                                return@launch
+                            }
+                            registered?.operator
+                                ?.takeIf { it.isNotBlank() }
+                                ?.let { locator.tokenStore.savePreferredOperator(it) }
                             val gatewayId = registered?.id?.toString()
                                 ?: data.gatewayId
                                 ?: data.userId?.toString()
                             locator.tokenStore.saveGatewayId(gatewayId)
 
                             JournalRepository.append(
-                                "Login OK (${data.username}) · gatewayId=$gatewayId · device=$deviceId",
+                                "Login OK (${data.username}) · gatewayId=$gatewayId · device=$deviceId · op=${registered?.operator ?: preferredOperator}",
                             )
                             HeartbeatWorker.enqueue(context)
                             TaskPollingWorker.enqueue(context)

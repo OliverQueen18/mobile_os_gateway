@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.osgateway.distributor.BuildConfig
 import com.osgateway.distributor.data.ServiceLocator
 import com.osgateway.distributor.ui.components.AuthScreenScaffold
 import com.osgateway.distributor.ui.components.FormMessage
@@ -32,7 +33,6 @@ fun ForgotPasswordScreen(navController: NavController) {
     val locator = remember { ServiceLocator.get(context) }
     val scope = rememberCoroutineScope()
 
-    var apiUrl by remember { mutableStateOf(locator.tokenStore.getApiBaseUrl()) }
     var email by remember { mutableStateOf("") }
     var message by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -40,10 +40,8 @@ fun ForgotPasswordScreen(navController: NavController) {
 
     AuthScreenScaffold(
         title = "Mot de passe oublié",
-        subtitle = "Recevez un code de réinitialisation (affiché en mode dev)",
+        subtitle = "Recevez un code de réinitialisation",
     ) {
-        OsTextField(apiUrl, { apiUrl = it }, "URL API")
-        Spacer(modifier = Modifier.height(10.dp))
         OsTextField(
             email,
             { email = it },
@@ -63,7 +61,7 @@ fun ForgotPasswordScreen(navController: NavController) {
                     error = null
                     message = null
                     try {
-                        locator.tokenStore.saveApiBaseUrl(apiUrl.trim())
+                        locator.tokenStore.saveApiBaseUrl(BuildConfig.DEFAULT_API_BASE_URL)
                         locator.rebuildClient()
                         val resp = locator.authApi.forgotPassword(ForgotPasswordRequest(email.trim()))
                         val data = resp.data
@@ -85,6 +83,7 @@ fun ForgotPasswordScreen(navController: NavController) {
                 }
             },
         )
+        Spacer(modifier = Modifier.height(12.dp))
         OsTextLink("Retour connexion") { navController.popBackStack() }
     }
 }

@@ -34,7 +34,13 @@ class TokenStore(context: Context) {
     fun getAccessToken(): String? = prefs.getString("access", null)
     fun getRefreshToken(): String? = prefs.getString("refresh", null)
     fun getUsername(): String? = prefs.getString("username", null)
-    fun getApiBaseUrl(): String = prefs.getString("api_url", null) ?: BuildConfig.DEFAULT_API_BASE_URL
+    fun getApiBaseUrl(): String {
+        val stored = prefs.getString("api_url", null)
+        if (stored.isNullOrBlank() || isLegacyLocalApiUrl(stored)) {
+            return BuildConfig.DEFAULT_API_BASE_URL
+        }
+        return stored
+    }
 
     /** Mise à jour synchrone pour l'Authenticator OkHttp (thread réseau). */
     fun updateTokensSync(access: String, refresh: String) {
@@ -72,5 +78,16 @@ class TokenStore(context: Context) {
     suspend fun clear() = withContext(Dispatchers.IO) {
         prefs.edit().remove("access").remove("refresh").remove("username").apply()
         _loggedIn.value = false
+    }
+
+    companion object {
+        fun isLegacyLocalApiUrl(url: String): Boolean {
+            val u = url.lowercase()
+            return u.contains("10.0.2.2") ||
+                u.contains("127.0.0.1") ||
+                u.contains("localhost") ||
+                u.contains(":18080") ||
+                u.contains(":8080")
+        }
     }
 }

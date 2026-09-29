@@ -38,8 +38,13 @@ class SecureTokenStore(context: Context) {
     fun getRefreshToken(): String? = prefs.getString(KEY_REFRESH, null)
     fun getGatewayId(): String? = prefs.getString(KEY_GATEWAY_ID, null)
     fun getUsername(): String? = prefs.getString(KEY_USERNAME, null)
-    fun getApiBaseUrl(): String = prefs.getString(KEY_API_URL, null)
-        ?: com.osgateway.gateway.BuildConfig.DEFAULT_API_BASE_URL
+    fun getApiBaseUrl(): String {
+        val stored = prefs.getString(KEY_API_URL, null)
+        if (stored.isNullOrBlank() || isLegacyLocalApiUrl(stored)) {
+            return com.osgateway.gateway.BuildConfig.DEFAULT_API_BASE_URL
+        }
+        return stored
+    }
 
     fun getPreferredOperator(): String? = prefs.getString(KEY_OPERATOR, null)
         ?.takeIf { it.isNotBlank() }
@@ -113,5 +118,15 @@ class SecureTokenStore(context: Context) {
         private const val KEY_USERNAME = "username"
         private const val KEY_API_URL = "api_base_url"
         private const val KEY_OPERATOR = "preferred_operator"
+
+        /** Anciennes URLs locales / émulateur — basculer vers la prod BuildConfig. */
+        fun isLegacyLocalApiUrl(url: String): Boolean {
+            val u = url.lowercase()
+            return u.contains("10.0.2.2") ||
+                u.contains("127.0.0.1") ||
+                u.contains("localhost") ||
+                u.contains(":18080") ||
+                u.contains(":8080")
+        }
     }
 }
