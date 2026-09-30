@@ -196,6 +196,7 @@ pipeline {
                 mkdir -p artifacts
                 find "\${OSG_ANDROID_BUILD_DIR}" -path "*/outputs/apk/\${VARIANT}/*.apk" -type f | while read -r apk; do
                   base=\$(basename "\$apk" .apk)
+                  cp "\$apk" "artifacts/\${base}.apk"
                   cp "\$apk" "artifacts/\${base}-b${env.BUILD_NUMBER}.apk"
                 done
                 ls -la artifacts/
@@ -218,9 +219,11 @@ pipeline {
                     set -e
                     chmod 600 "\$SSH_KEY"
                     ssh -i "\$SSH_KEY" -o StrictHostKeyChecking=no ${params.DEPLOY_HOST} \\
-                      "mkdir -p ${params.DEPLOY_APK_DIR}"
+                      "mkdir -p ${params.DEPLOY_APK_DIR} && chmod 755 ${params.DEPLOY_APK_DIR}"
                     scp -i "\$SSH_KEY" -o StrictHostKeyChecking=no artifacts/*.apk \\
                       ${params.DEPLOY_HOST}:${params.DEPLOY_APK_DIR}/
+                    ssh -i "\$SSH_KEY" -o StrictHostKeyChecking=no ${params.DEPLOY_HOST} \\
+                      "chmod 644 ${params.DEPLOY_APK_DIR}/*.apk"
                     """
                 }
             }

@@ -38,7 +38,7 @@ Sans credentials Firebase, le pipeline copie les **stubs** `deploy/jenkins/googl
 
 - **BUILD_VARIANT** : `debug` (défaut interne) ou `release`.
 - **APPS** : gateway, distributor ou les deux.
-- **DEPLOY_APK** : copie vers `DEPLOY_APK_DIR` sur le VPS (ex. `/home/adminubuntu/OliveApps/OSGATEWAY/apk`).
+- **DEPLOY_APK** : copie vers `DEPLOY_APK_DIR` sur le VPS (ex. `/home/adminubuntu/OliveApps/OSGATEWAY/apk`). Le frontend Nginx les sert sur `https://osgateway.olive-services.net/apk/` (volume `./OSGATEWAY/apk` du service `frontend-osgateway`). Liens stables : `gateway-app-release.apk` et `distributor-app-release.apk` (ou `*-debug.apk`).
 
 ## Sorties
 
