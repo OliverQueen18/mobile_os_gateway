@@ -1,0 +1,24 @@
+// Signature release CI : ANDROID_KEYSTORE_FILE + mots de passe (Jenkins credentials).
+// Groovy volontairement : un script .gradle.kts appliqué n'a pas le plugin Android
+// sur son classpath de compilation (Unresolved reference: android).
+
+def keystorePath = System.getenv("ANDROID_KEYSTORE_FILE")
+if (!keystorePath) {
+    return
+}
+
+subprojects { sub ->
+    sub.plugins.withId("com.android.application") {
+        def store = sub.file(keystorePath)
+        def androidExt = sub.extensions.getByName("android")
+        androidExt.signingConfigs.create("ciRelease") {
+            storeFile = store
+            storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("ANDROID_KEY_PASSWORD") ?: ""
+        }
+        androidExt.buildTypes.named("release").configure {
+            signingConfig = androidExt.signingConfigs.getByName("ciRelease")
+        }
+    }
+}

@@ -17,4 +17,4 @@ allprojects {
     layout.buildDirectory.set(externalBuildRoot.resolve(project.name))
 }
 
-apply(from = "gradle/ci-signing.gradle.kts")
+apply(from = "gradle/ci-signing.gradle")
