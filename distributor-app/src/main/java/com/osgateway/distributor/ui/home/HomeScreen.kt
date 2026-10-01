@@ -91,6 +91,7 @@ fun HomeScreen(navController: NavController) {
                 if (me.success) {
                     val data = me.data
                     distributor = data
+                    locator.balanceStore.applyServer(data)
                     locator.statsCache.save(distributor = data)
                     if (data != null && !data.isRegistrationApproved()) {
                         navController.navigate("registration") {
@@ -124,6 +125,7 @@ fun HomeScreen(navController: NavController) {
             val snap = locator.statsCache.load()
             if (snap != null) {
                 distributor = snap.distributor ?: distributor
+                locator.balanceStore.applyServer(distributor)
                 stats = snap.stats
                 offlineBanner =
                     "Hors ligne — données du ${StatsCacheStore.formatCachedAt(snap.cachedAtEpochMs)}"
@@ -135,10 +137,11 @@ fun HomeScreen(navController: NavController) {
 
     val username = locator.tokenStore.getUsername().orEmpty()
     val phone = distributor?.phone?.takeIf { it.isNotBlank() } ?: username
+    val liveBalance by locator.balanceStore.displayedBalance.collectAsState()
     val balanceText = if (hideBalance) {
         "•••••• CFA"
     } else {
-        "${MoneyFormat.format(distributor?.balance ?: 0.0, decimals = false)} CFA"
+        "${MoneyFormat.format(liveBalance ?: distributor?.balance ?: 0.0, decimals = false)} CFA"
     }
     val commissionToday = stats?.commissionToday
     val commissionText = when {

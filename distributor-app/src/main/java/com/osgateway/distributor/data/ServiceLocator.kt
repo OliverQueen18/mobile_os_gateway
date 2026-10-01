@@ -11,6 +11,10 @@ class ServiceLocator private constructor(context: Context) {
     val tokenStore = TokenStore(appContext)
     val networkMonitor = NetworkMonitor(appContext)
     val statsCache = StatsCacheStore(appContext)
+    val balanceStore = DistributorBalanceStore(
+        api = { transactionApi },
+        cache = statsCache,
+    )
 
     @Volatile
     private var retrofit: Retrofit = buildRetrofit()

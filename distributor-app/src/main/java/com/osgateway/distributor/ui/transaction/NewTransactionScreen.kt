@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.osgateway.distributor.data.DistributorBalanceStore
 import com.osgateway.distributor.data.ServiceLocator
 import com.osgateway.distributor.ui.components.FormMessage
 import com.osgateway.distributor.ui.components.OsPrimaryButton
@@ -314,6 +315,13 @@ fun NewTransactionScreen(
                             ticker.cancel()
                             val tx = resp.data
                             if (resp.success && tx != null) {
+                                val selectedOp = operationTypes.firstOrNull {
+                                    it.code.equals(type, ignoreCase = true)
+                                }
+                                val txId = tx.id?.trim().orEmpty()
+                                if (DistributorBalanceStore.reservesUv(selectedOp) && amt != null && amt > 0.0 && txId.isNotEmpty()) {
+                                    locator.balanceStore.reserve(txId, amt)
+                                }
                                 progressLabel = "Opération enregistrée"
                                 submitProgress = 1f
                                 val ref = tx.reference ?: tx.id?.toString().orEmpty()

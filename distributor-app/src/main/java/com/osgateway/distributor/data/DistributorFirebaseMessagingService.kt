@@ -36,6 +36,7 @@ class DistributorFirebaseMessagingService : FirebaseMessagingService() {
             ?: ""
         val body = TransactionStatusFr.stripCommissionMentions(rawBody)
         if (body.isBlank() && message.notification == null) return
+        ServiceLocator.get(applicationContext).balanceStore.reconcile()
         showNotification(title, body.ifBlank { "Nouvelle notification" })
     }
 
