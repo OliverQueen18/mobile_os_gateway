@@ -65,7 +65,7 @@ class DistributorBalanceStore(
     private suspend fun reconcilePending() {
         val ids = pending.keys.toList()
         if (ids.isEmpty()) {
-            refreshServer()
+            if (fetchServer()) publish()
             return
         }
         for (id in ids) {
