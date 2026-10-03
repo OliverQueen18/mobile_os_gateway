@@ -319,8 +319,8 @@ fun NewTransactionScreen(
                                     it.code.equals(type, ignoreCase = true)
                                 }
                                 val txId = tx.id?.trim().orEmpty()
-                                if (DistributorBalanceStore.reservesUv(selectedOp) && amt != null && amt > 0.0 && txId.isNotEmpty()) {
-                                    locator.balanceStore.reserve(txId, amt)
+                                if (amt != null && amt > 0.0 && txId.isNotEmpty()) {
+                                    locator.balanceStore.preview(txId, amt, selectedOp)
                                 }
                                 progressLabel = "Opération enregistrée"
                                 submitProgress = 1f

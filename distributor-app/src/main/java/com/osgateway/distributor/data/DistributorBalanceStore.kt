@@ -17,9 +17,12 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Solde affiché = solde serveur − réserves des opérations DEBIT encore ouvertes.
- * La réserve est posée à la création et retirée à l'échec (le serveur n'a pas débité)
- * ou au succès une fois le solde serveur relu (débit déjà appliqué).
+ * Solde affiché = solde serveur + aperçu des opérations encore ouvertes.
+ * Débit (dépôt, transfert, paiement, crédit téléphonique) : l'aperçu est négatif.
+ * Crédit (retrait, achat UV) : l'aperçu est positif.
+ * Consultation : aucun aperçu.
+ * À l'échec l'aperçu est retiré. Au succès le serveur a déjà bougé le solde,
+ * l'aperçu est retiré après relecture.
  */
 class DistributorBalanceStore(
     private val api: () -> TransactionApi,
@@ -39,9 +42,10 @@ class DistributorBalanceStore(
         publish()
     }
 
-    fun reserve(transactionId: String, amount: Double) {
-        if (transactionId.isBlank() || amount <= 0.0) return
-        pending[transactionId] = amount
+    fun preview(transactionId: String, amount: Double, operation: OperationTypeDto?) {
+        val delta = previewDelta(operation, amount)
+        if (transactionId.isBlank() || delta == 0.0) return
+        pending[transactionId] = delta
         publish()
         ensurePolling()
     }
@@ -104,21 +108,33 @@ class DistributorBalanceStore(
         val hold = pending.values.sum()
         _displayedBalance.value = when {
             server == null -> null
-            else -> (server - hold).coerceAtLeast(0.0)
+            else -> (server + hold).coerceAtLeast(0.0)
         }
     }
 
     companion object {
         private const val POLL_MS = 5_000L
 
-        fun reservesUv(operation: OperationTypeDto?): Boolean {
-            val effect = operation?.balanceEffect?.trim()?.uppercase()
-            return when (effect) {
-                "NONE", "CREDIT" -> false
-                "DEBIT" -> true
-                else -> {
-                    val code = operation?.code?.trim()?.uppercase()
-                    code != "SOLDE" && code != "ACHAT_UV"
+        /** Delta affiché tant que la transaction n'est pas terminée. 0 = aucun impact. */
+        fun previewDelta(operation: OperationTypeDto?, amount: Double): Double {
+            if (amount <= 0.0) return 0.0
+            return when (effectOf(operation)) {
+                "NONE" -> 0.0
+                "CREDIT" -> amount
+                else -> -amount
+            }
+        }
+
+        fun effectOf(operation: OperationTypeDto?): String {
+            val configured = operation?.balanceEffect?.trim()?.uppercase()
+            if (configured == "NONE") return "NONE"
+            return when (operation?.code?.trim()?.uppercase()) {
+                "SOLDE" -> "NONE"
+                "RETRAIT", "ACHAT_UV" -> "CREDIT"
+                "DEPOT", "TRANSFERT", "PAIEMENT", "ACHAT_CREDIT" -> "DEBIT"
+                else -> when (configured) {
+                    "CREDIT", "DEBIT" -> configured
+                    else -> "DEBIT"
                 }
             }
         }
