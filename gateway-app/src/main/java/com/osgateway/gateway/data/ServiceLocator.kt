@@ -3,6 +3,7 @@ package com.osgateway.gateway.data
 import android.content.Context
 import com.osgateway.shared.api.AuthApi
 import com.osgateway.shared.api.GatewayApi
+import com.osgateway.shared.api.TransactionApi
 import com.osgateway.shared.network.ApiClientFactory
 import retrofit2.Retrofit
 
@@ -16,6 +17,8 @@ class ServiceLocator private constructor(context: Context) {
     var authApi: AuthApi = ApiClientFactory.authApi(retrofit)
         private set
     var gatewayApi: GatewayApi = ApiClientFactory.gatewayApi(retrofit)
+        private set
+    var transactionApi: TransactionApi = ApiClientFactory.transactionApi(retrofit)
         private set
 
     val sessionKeepAlive = SessionKeepAlive(
@@ -33,6 +36,7 @@ class ServiceLocator private constructor(context: Context) {
         retrofit = buildRetrofit()
         authApi = ApiClientFactory.authApi(retrofit)
         gatewayApi = ApiClientFactory.gatewayApi(retrofit)
+        transactionApi = ApiClientFactory.transactionApi(retrofit)
     }
 
     private fun buildRetrofit(): Retrofit {
